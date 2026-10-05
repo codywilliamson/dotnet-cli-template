@@ -1,6 +1,7 @@
 #:property RestorePackagesWithLockFile=false
 
 using System.Diagnostics;
+using System.Text.Json;
 
 Console.OutputEncoding = new System.Text.UTF8Encoding(false);
 return Build.Run(args);
@@ -74,9 +75,79 @@ static class Build
         var script = Path.Combine(Work, "script");
         steps.Add(new("cody-script new", () => Dotnet(Work, ["new", "cody-script", "-n", "sample", "-o", script, .. HiveFlag()])));
         steps.Add(new("cody-script run", () => Dotnet(script, "run", "sample.cs", "--", ".")));
+        steps.Add(new("cody-script agent output", () => CheckScript(script, agentEnv: true, "sample.cs", "--", ".")));
+        steps.Add(new("cody-script --json output", () => CheckScript(script, agentEnv: false, "sample.cs", "--", ".", "--json")));
+        steps.Add(new("cody-script usage exits 2", () => CheckScriptUsage(script)));
         steps.Add(new("cody-script publish", () => Dotnet(script, "publish", "sample.cs")));
         steps.Add(new("uninstall", () => Dotnet(Root, ["new", "uninstall", TEMPLATE_PACKAGE, .. HiveFlag()])));
         return [.. steps];
+    }
+
+    // run the script like an agent would and check what it printed
+    static int CheckScript(string script, bool agentEnv, params string[] args)
+    {
+        var (exit, stdout, stderr) = Capture(script, agentEnv, ["run", .. args]);
+        var json = args.Contains("--json");
+        var problems = new List<string>();
+        if (exit != 0)
+        {
+            problems.Add($"exit {exit}");
+        }
+        if (stdout.Contains((char)0x1b))
+        {
+            problems.Add("stdout has an ESC byte");
+        }
+        if (agentEnv && !stderr.Contains("sample: ", StringComparison.Ordinal))
+        {
+            problems.Add("no agent footer on stderr");
+        }
+        if (json)
+        {
+            foreach (var line in stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(line);
+                    _ = doc.RootElement.GetProperty("step");
+                }
+                catch (Exception e) when (e is JsonException or KeyNotFoundException)
+                {
+                    problems.Add($"bad json line: {line}");
+                }
+            }
+        }
+
+        Console.WriteLine(stdout.TrimEnd());
+        Console.WriteLine($"stderr: {stderr.Trim()}");
+        problems.ForEach(p => Console.WriteLine($"problem: {p}"));
+        return problems.Count;
+    }
+
+    static int CheckScriptUsage(string script)
+    {
+        var (exit, _, stderr) = Capture(script, agentEnv: false, ["run", "sample.cs"]);
+        Console.WriteLine($"exit {exit}: {stderr.Trim()}");
+        return exit == 2 && stderr.Contains("usage:") && stderr.Contains("example:") ? 0 : 1;
+    }
+
+    static (int Exit, string Stdout, string Stderr) Capture(string workingDirectory, bool agentEnv, string[] args)
+    {
+        var info = new ProcessStartInfo("dotnet", args)
+        {
+            WorkingDirectory = workingDirectory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        info.Environment.Remove("CLAUDECODE");
+        if (agentEnv)
+        {
+            info.Environment["CLAUDECODE"] = "1";
+        }
+        using var process = Process.Start(info)!;
+        var stderr = process.StandardError.ReadToEndAsync();
+        var stdout = process.StandardOutput.ReadToEnd();
+        process.WaitForExit();
+        return (process.ExitCode, stdout, stderr.Result);
     }
 
     // an isolated hive keeps test installs out of the real template list

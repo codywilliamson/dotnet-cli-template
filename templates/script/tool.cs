@@ -4,26 +4,38 @@
 
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using XenoAtom.Terminal;
 
 const int EXIT_FAILED = 1;
 const int EXIT_USAGE = 2;
 
-if (args.Length == 0)
+var flags = args.Where(a => a.StartsWith("--", StringComparison.Ordinal)).ToHashSet();
+var positional = args.Where(a => !a.StartsWith("--", StringComparison.Ordinal)).ToArray();
+if (positional.Length != 1 || flags.Contains("--help"))
 {
-    Console.Error.WriteLine("usage: tool <dir>");
+    Console.Error.WriteLine("usage: tool <dir> [--json] [--agent]");
+    Console.Error.WriteLine("example: tool . --json");
+    Console.Error.WriteLine("exit codes: 0 ok, 1 a step failed, 2 usage");
     return EXIT_USAGE;
 }
 
 Console.OutputEncoding = new UTF8Encoding(false);
-var color = !Console.IsOutputRedirected;
+var json = flags.Contains("--json");
+// agent env vars, --agent and redirected stdout all mean plain text: no color, no prompts, ever
+var agent = flags.Contains("--agent") || new[] { "CLAUDECODE", "CODEX_SANDBOX", "CODEX_SANDBOX_NETWORK_DISABLED" }
+    .Any(name => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(name)));
+var color = !json && !agent && !Console.IsOutputRedirected;
 // beside the script when run as `dotnet run`, beside the exe once published
 var scriptDir = AppContext.GetData("EntryPointFileDirectoryPath") as string ?? AppContext.BaseDirectory;
-var dir = Path.GetFullPath(args[0]);
-var failed = false;
+var dir = Path.GetFullPath(positional[0]);
+var total = Stopwatch.StartNew();
+var steps = 0;
+var failed = 0;
 
 Step("find dir", () => Directory.Exists(dir) ? dir : throw new DirectoryNotFoundException($"no such directory: {dir}"));
-if (!failed)
+if (failed == 0)
 {
     Step("count files", () => $"{Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories).Count()} files");
 }
@@ -33,34 +45,50 @@ Step("read notes", () =>
     return File.Exists(notes) ? $"{File.ReadAllLines(notes).Length} lines" : "none";
 });
 
-return failed ? EXIT_FAILED : 0;
+// the agent footer goes last, on stderr
+if (agent)
+{
+    Console.Error.WriteLine($"tool: {steps - failed} of {steps} steps ok, {total.ElapsedMilliseconds}ms");
+}
+return failed == 0 ? 0 : EXIT_FAILED;
 
 void Step(string name, Func<string> work)
 {
     var clock = Stopwatch.StartNew();
+    steps++;
     try
     {
-        var detail = work();
-        Print(true, name, clock.Elapsed, detail);
+        Print(new StepResult(name, true, clock.ElapsedMilliseconds, work()));
     }
     catch (Exception e) when (e is IOException or UnauthorizedAccessException)
     {
-        failed = true;
-        Print(false, name, clock.Elapsed, e.Message);
+        failed++;
+        Print(new StepResult(name, false, clock.ElapsedMilliseconds, e.Message));
     }
 }
 
-void Print(bool ok, string name, TimeSpan elapsed, string detail)
+void Print(StepResult result)
 {
-    var mark = ok ? "✓" : "✗";
-    var time = elapsed.TotalSeconds < 1 ? $"{elapsed.TotalMilliseconds:0}ms" : $"{elapsed.TotalSeconds:0.0}s";
+    if (json)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(result, ScriptJson.Default.StepResult));
+        return;
+    }
+
+    var mark = result.Ok ? "✓" : "✗";
     if (color)
     {
-        var tint = ok ? "green" : "red";
-        Terminal.WriteMarkupLine($"[{tint}]{mark}[/] {name} [dim]{time}  {detail}[/]");
+        Terminal.WriteMarkupLine($"[{(result.Ok ? "green" : "red")}]{mark}[/] {result.Step} [dim]{result.Ms}ms  {result.Detail}[/]");
     }
     else
     {
-        Console.WriteLine($"{mark} {name} {time}  {detail}");
+        Console.WriteLine($"{mark} {result.Step} {result.Ms}ms  {result.Detail}");
     }
 }
+
+// one json line per step, source-generated so the script stays AOT clean
+record StepResult(string Step, bool Ok, long Ms, string Detail);
+
+[JsonSerializable(typeof(StepResult))]
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower)]
+partial class ScriptJson : JsonSerializerContext;
