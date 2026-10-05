@@ -124,12 +124,21 @@ public class McpTests
             return _process.ExitCode;
         }
 
+        // close stdin and let it exit; a killed process can hold its cwd handle
+        // past exit on windows, which breaks the temp dir cleanup
         public async ValueTask DisposeAsync()
         {
             if (!_process.HasExited)
             {
-                _process.Kill(entireProcessTree: true);
-                await _process.WaitForExitAsync();
+                try
+                {
+                    await CloseAndWaitAsync();
+                }
+                catch (OperationCanceledException)
+                {
+                    _process.Kill(entireProcessTree: true);
+                    await _process.WaitForExitAsync();
+                }
             }
             _process.Dispose();
         }
