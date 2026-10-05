@@ -1,0 +1,10 @@
+bin/
+obj/
+out/
+artifacts/
+*.user
+.vs/
+.idea/
+TestResults/
+
+.claude/worktrees/

@@ -1,0 +1,11 @@
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="XenoAtom.CommandLine" Version="2.0.3" />
+    <PackageVersion Include="XenoAtom.Terminal" Version="2.2.0" />
+    <PackageVersion Include="XenoAtom.Terminal.UI" Version="3.10.0" />
+    <PackageVersion Include="TUnit" Version="1.72.16" />
+<!--#if (mcp)-->
+    <PackageVersion Include="ModelContextProtocol.Core" Version="2.2.0" />
+<!--#endif-->
+  </ItemGroup>
+</Project>

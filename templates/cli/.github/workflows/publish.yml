@@ -1,0 +1,65 @@
+name: publish
+
+on:
+  release:
+    types: [published]
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: release tag to build and upload to, e.g. v0.1.0
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ inputs.tag || github.event.release.tag_name }}
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { rid: win-x64, os: windows-latest }
+          - { rid: linux-x64, os: ubuntu-latest }
+          - { rid: osx-arm64, os: macos-latest }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: publish
+        run: dotnet build.cs publish --rid ${{ matrix.rid }}
+
+      - name: archive
+        run: |
+          version="${TAG#v}"
+          name="starter-${version}-${{ matrix.rid }}"
+          mkdir -p "stage/$name" dist
+          if [[ "${{ matrix.rid }}" == win-* ]]; then
+            cp artifacts/publish/starter.exe "stage/$name/"
+            (cd stage && 7z a -tzip "../dist/$name.zip" "$name" > /dev/null)
+          else
+            cp artifacts/publish/starter "stage/$name/"
+            tar -czf "dist/$name.tar.gz" -C stage "$name"
+          fi
+
+      - name: upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" dist/* --clobber

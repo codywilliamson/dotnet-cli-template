@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Cody Williamson",
+  "classifications": [
+    "Console",
+    "CLI",
+    "NativeAOT"
+  ],
+  "identity": "Cody.Templates.Cli",
+  "name": "Cody CLI",
+  "description": "NativeAOT .NET CLI: XenoAtom.CommandLine, pretty/plain/json output, TUnit tests, build.cs loop. Optional e2e suite, MCP server and release workflows.",
+  "shortName": "cody-cli",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Starter",
+  "preferNameDirectory": true,
+  "symbols": {
+    "e2e": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Add tests/Starter.E2E, which drives the published native exe."
+    },
+    "mcp": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Add a stdio MCP server (`starter mcp`) on ModelContextProtocol.Core."
+    },
+    "release": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Add release-please config and the release and publish workflows."
+    },
+    "shortName": {
+      "type": "generated",
+      "generator": "regex",
+      "datatype": "string",
+      "parameters": {
+        "source": "name",
+        "steps": [
+          {
+            "regex": "^.*\\.",
+            "replacement": ""
+          }
+        ]
+      },
+      "replaces": "Prefix",
+      "fileRename": "Prefix"
+    },
+    "exe": {
+      "type": "generated",
+      "generator": "casing",
+      "datatype": "string",
+      "parameters": {
+        "source": "shortName",
+        "toLower": true
+      },
+      "replaces": "starter"
+    },
+    "envPrefix": {
+      "type": "generated",
+      "generator": "casing",
+      "datatype": "string",
+      "parameters": {
+        "source": "shortName",
+        "toLower": false
+      },
+      "replaces": "STARTER"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "!e2e",
+          "exclude": [
+            "tests/Starter.E2E/**"
+          ]
+        },
+        {
+          "condition": "!mcp",
+          "exclude": [
+            "src/Starter/Mcp/**",
+            "tests/Starter.E2E/Mcp/**"
+          ]
+        },
+        {
+          "condition": "!release",
+          "exclude": [
+            "release-please-config.json",
+            ".release-please-manifest.json",
+            ".github/workflows/release-please.yml",
+            ".github/workflows/publish.yml"
+          ]
+        }
+      ]
+    }
+  ],
+  "primaryOutputs": [
+    {
+      "path": "src/Starter/Starter.csproj"
+    },
+    {
+      "path": "tests/Starter.Tests/Starter.Tests.csproj"
+    },
+    {
+      "condition": "e2e",
+      "path": "tests/Starter.E2E/Starter.E2E.csproj"
+    }
+  ],
+  "postActions": [
+    {
+      "description": "Restore NuGet packages and write the lock files.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet build.cs restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
+}

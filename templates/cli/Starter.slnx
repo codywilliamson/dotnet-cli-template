@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Starter/Starter.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Starter.Tests/Starter.Tests.csproj" />
+<!--#if (e2e)-->
+    <Project Path="tests/Starter.E2E/Starter.E2E.csproj" />
+<!--#endif-->
+  </Folder>
+</Solution>
