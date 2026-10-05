@@ -28,7 +28,9 @@ public sealed class DoctorCommand(RunContext run)
         }
 
         var ok = checklist.Problems == 0;
-        reporter.Finish(ok, ok ? "all checks passed" : $"{checklist.Problems} problem(s) found", run.Elapsed);
+        var headline = ok ? "all checks passed" : $"{checklist.Problems} problem(s) found";
+        run.Summary = headline;
+        reporter.Finish(ok, headline, run.Elapsed);
         return ok ? ExitCode.Success : ExitCode.Failed;
     }
 

@@ -38,10 +38,10 @@ public sealed class McpTools(string workingDirectory)
             throw InvalidParams($"directory '{args.Dir}' does not exist");
         }
 
-        var result = DirectoryStats.Scan(dir, ct);
+        var result = DirectoryStats.Scan(args.Dir, dir, DirectoryStats.DEFAULT_LIMIT, ct);
         return new CallToolResult
         {
-            Content = [new TextContentBlock { Text = $"{result.Files} files, {result.Bytes} bytes in {result.Dir}" }],
+            Content = [new TextContentBlock { Text = $"{result.Files} files, {result.Bytes} bytes in {args.Dir}" }],
             StructuredContent = JsonSerializer.SerializeToElement(result, McpJson.Default.StatsResult),
         };
     }

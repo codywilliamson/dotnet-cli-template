@@ -59,7 +59,8 @@
         "source": "shortName",
         "toLower": true
       },
-      "replaces": "starter"
+      "replaces": "starter",
+      "fileRename": "starter"
     },
     "envPrefix": {
       "type": "generated",

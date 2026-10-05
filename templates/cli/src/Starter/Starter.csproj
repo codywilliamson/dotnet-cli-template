@@ -10,6 +10,9 @@
     <InternalsVisibleTo Include="Starter.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\..\skills\starter\SKILL.md" LogicalName="SKILL.md" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="XenoAtom.CommandLine" />
     <PackageReference Include="XenoAtom.Terminal" />
     <PackageReference Include="XenoAtom.Terminal.UI" />

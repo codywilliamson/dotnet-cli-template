@@ -14,7 +14,7 @@ public static class PrefixProcess
 
     static readonly string[] AgentEnvVars = ["CLAUDECODE", "CODEX_SANDBOX", "CODEX_SANDBOX_NETWORK_DISABLED"];
 
-    public static ProcessStartInfo StartInfo(string[] args)
+    public static ProcessStartInfo StartInfo(string[] args, bool agent = false)
     {
         var psi = new ProcessStartInfo(NativeExe.Path, args)
         {
@@ -27,12 +27,18 @@ public static class PrefixProcess
         {
             psi.Environment.Remove(name);
         }
+        if (agent)
+        {
+            psi.Environment["CLAUDECODE"] = "1";
+        }
         return psi;
     }
 
-    public static async Task<CliRun> RunAsync(params string[] args)
+    public static Task<CliRun> RunAsync(params string[] args) => RunAsync(args, agent: false);
+
+    public static async Task<CliRun> RunAsync(string[] args, bool agent)
     {
-        using var process = Process.Start(StartInfo(args))!;
+        using var process = Process.Start(StartInfo(args, agent))!;
         using var stdout = new MemoryStream();
         var copy = process.StandardOutput.BaseStream.CopyToAsync(stdout);
         var stderr = process.StandardError.ReadToEndAsync();

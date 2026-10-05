@@ -6,4 +6,5 @@ public enum ExitCode
     Failed = 1,
     Usage = 2,
     Aborted = 3,
+    Declined = 4,
 }

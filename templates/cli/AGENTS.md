@@ -19,11 +19,19 @@ Scaffolded from `cody-cli`. The `stats` and `doctor` commands are examples of th
 - `tests/Starter.E2E/` drives the published native exe and enforces the CLI spec.
 <!--#endif-->
 
+## Agents are a first-class user
+
+- Agent mode (`--agent`, or `CLAUDECODE` / `CODEX_*`) prints plain output, never prompts, and puts one summary line on stderr. Anything that would prompt exits 2 with a hint naming `--yes`.
+- Every data command takes `--json`: one object per line, snake_case, sorted, relative paths. Errors are JSON on stderr in that mode.
+- Hints are literal next commands (`try: starter stats .`).
+- `skills/starter/SKILL.md` is the agent skill, embedded in the exe and printed by `starter skill`. Update it in the same change as any command, flag or JSON shape. An e2e test fails when a command in `--help` is missing from it.
+- Spec: [docs/specs/cli.md](docs/specs/cli.md).
+
 ## Rules that came from spikes
 
 - Never start a live widget (spinner, progress) when stdout is redirected. Frames leak into the output. Only `PrettyReporter` does live work, and it is only built on a terminal.
 - Plain mode emits zero ESC bytes. The e2e suite checks it.
-- Results go to stdout. Progress, warnings and errors go to stderr.
+- Results go to stdout. Progress, warnings, errors and the agent footer go to stderr.
 - Features never read `Console`, `Environment` or `DateTime.Now`. Take them from `CliEnvironment`.
 - `XenoAtom.CommandLine` rejects root positionals once subcommands exist. Keep positionals on the commands.
 - The parser reports bad args as exit 1. `PrefixApp` maps that to 2, so only commands decide a real exit 1.

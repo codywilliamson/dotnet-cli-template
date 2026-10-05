@@ -1,7 +1,7 @@
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using Starter.Cli;
+using Starter.Shared;
 
 namespace Starter.Mcp;
 
@@ -12,7 +12,7 @@ public sealed class PrefixMcpServer(McpTools tools, string version)
     {
         var options = new McpServerOptions
         {
-            ServerInfo = new Implementation { Name = PrefixApp.NAME, Version = version },
+            ServerInfo = new Implementation { Name = AppInfo.NAME, Version = version },
             Handlers = new McpServerHandlers
             {
                 ListToolsHandler = (_, _) => ValueTask.FromResult(new ListToolsResult { Tools = McpTools.Definitions }),
