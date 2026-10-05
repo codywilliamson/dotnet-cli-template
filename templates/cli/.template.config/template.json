@@ -6,10 +6,10 @@
     "CLI",
     "NativeAOT"
   ],
-  "identity": "Cody.Templates.Cli",
-  "name": "Cody CLI",
+  "identity": "Spectacl3.Templates.Cli",
+  "name": "Spectacl3 CLI",
   "description": "NativeAOT .NET CLI: XenoAtom.CommandLine, pretty/plain/json output, TUnit tests, build.cs loop. Optional e2e suite, MCP server and release workflows.",
-  "shortName": "cody-cli",
+  "shortName": "s3-cli",
   "tags": {
     "language": "C#",
     "type": "project"

@@ -4,7 +4,7 @@ Starter is a NativeAOT .NET 10 command-line tool: one native binary, fast startu
 
 ## Status
 
-Scaffolded from `cody-cli`. The `stats` and `doctor` commands are examples of the two output shapes (result and steps). Replace them with real features.
+Scaffolded from `s3-cli`. The `stats` and `doctor` commands are examples of the two output shapes (result and steps). Replace them with real features.
 
 ## Layout
 

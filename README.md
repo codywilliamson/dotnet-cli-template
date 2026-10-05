@@ -4,8 +4,8 @@
 
 | template | short name | produces |
 |---|---|---|
-| Cody CLI | `cody-cli` | A NativeAOT CLI repo: XenoAtom.CommandLine, pretty/plain/json output, TUnit tests, a `build.cs` loop, CI. |
-| Cody Script | `cody-script` | A single-file `dotnet run name.cs` script with usage check, step output and exit codes. |
+| Spectacl3 CLI | `s3-cli` | A NativeAOT CLI repo: XenoAtom.CommandLine, pretty/plain/json output, TUnit tests, a `build.cs` loop, CI. |
+| Spectacl3 Script | `s3-script` | A single-file `dotnet run name.cs` script with usage check, step output and exit codes. |
 
 ## Install
 
@@ -18,15 +18,15 @@ Or pack once and install the package (needs the .NET 10 SDK):
 
 ```sh
 dotnet build.cs pack
-dotnet new install artifacts/nupkg/Cody.Templates.0.1.0.nupkg --force
+dotnet new install artifacts/nupkg/Spectacl3.Templates.0.1.0.nupkg --force
 ```
 
-## cody-cli
+## s3-cli
 
 ```sh
-dotnet new cody-cli -n Acme.Tools                      # e2e + release, no mcp
-dotnet new cody-cli -n Widget --mcp true               # add a stdio MCP server
-dotnet new cody-cli -n Widget --e2e false --release false
+dotnet new s3-cli -n Acme.Tools                      # e2e + release, no mcp
+dotnet new s3-cli -n Widget --mcp true               # add a stdio MCP server
+dotnet new s3-cli -n Widget --e2e false --release false
 ```
 
 The name becomes the namespace, project and folder names. The exe and command name is the last segment, lowercased (`Acme.Tools` gives `tools`).
@@ -48,10 +48,10 @@ artifacts/publish/widget stats .
 
 NativeAOT on Windows needs the VS C++ build tools. `build.cs` adds `vswhere.exe` to PATH for its child processes.
 
-## cody-script
+## s3-script
 
 ```sh
-dotnet new cody-script -n deploy      # writes deploy.cs
+dotnet new s3-script -n deploy      # writes deploy.cs
 dotnet run deploy.cs -- .
 dotnet publish deploy.cs              # NativeAOT exe
 ```
@@ -62,6 +62,6 @@ dotnet publish deploy.cs              # NativeAOT exe
 dotnet build.cs test
 ```
 
-Packs the templates, installs them into an isolated hive under `artifacts/`, generates three `cody-cli` combinations plus a script, runs `dotnet build.cs ci` inside each generated project, then runs and publishes the script. It takes several minutes because each combination publishes a native exe.
+Packs the templates, installs them into an isolated hive under `artifacts/`, generates three `s3-cli` combinations plus a script, runs `dotnet build.cs ci` inside each generated project, then runs and publishes the script. It takes several minutes because each combination publishes a native exe.
 
 Template tokens in the cli sources: `Starter` is the project name, `Prefix` the class prefix (last name segment), `starter` the lowercase exe name and `STARTER` the env var prefix.

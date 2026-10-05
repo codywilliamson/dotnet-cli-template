@@ -9,7 +9,7 @@ return Build.Run(args);
 static class Build
 {
     const int EXIT_USAGE = 2;
-    const string TEMPLATE_PACKAGE = "Cody.Templates";
+    const string TEMPLATE_PACKAGE = "Spectacl3.Templates";
 
     static readonly string Root = AppContext.GetData("EntryPointFileDirectoryPath") as string ?? Directory.GetCurrentDirectory();
     static readonly string Artifacts = Path.Combine(Root, "artifacts");
@@ -46,7 +46,7 @@ static class Build
         return RunAll(steps);
     }
 
-    static Step PackStep() => new("pack", () => Dotnet(Root, "pack", "Cody.Templates.csproj", "-c", "Release", "-o", Nupkgs));
+    static Step PackStep() => new("pack", () => Dotnet(Root, "pack", "Spectacl3.Templates.csproj", "-c", "Release", "-o", Nupkgs));
 
     static Step[] TestSteps()
     {
@@ -61,24 +61,24 @@ static class Build
                 Directory.CreateDirectory(Work);
                 return 0;
             }),
-            new("install", () => Dotnet(Root, ["new", "install", Directory.GetFiles(Nupkgs, "Cody.Templates.*.nupkg")[0], "--force", .. HiveFlag()])),
+            new("install", () => Dotnet(Root, ["new", "install", Directory.GetFiles(Nupkgs, "Spectacl3.Templates.*.nupkg")[0], "--force", .. HiveFlag()])),
         ];
 
         foreach (var combo in Combos)
         {
             var dir = Path.Combine(Work, combo.Label);
-            steps.Add(new($"cody-cli {combo.Label} ({combo.Name})", () =>
-                Dotnet(Work, ["new", "cody-cli", "-n", combo.Name, "-o", dir, .. combo.Flags, .. HiveFlag()])));
+            steps.Add(new($"s3-cli {combo.Label} ({combo.Name})", () =>
+                Dotnet(Work, ["new", "s3-cli", "-n", combo.Name, "-o", dir, .. combo.Flags, .. HiveFlag()])));
             steps.Add(new($"ci in {combo.Label}", () => Dotnet(dir, "build.cs", "ci")));
         }
 
         var script = Path.Combine(Work, "script");
-        steps.Add(new("cody-script new", () => Dotnet(Work, ["new", "cody-script", "-n", "sample", "-o", script, .. HiveFlag()])));
-        steps.Add(new("cody-script run", () => Dotnet(script, "run", "sample.cs", "--", ".")));
-        steps.Add(new("cody-script agent output", () => CheckScript(script, agentEnv: true, "sample.cs", "--", ".")));
-        steps.Add(new("cody-script --json output", () => CheckScript(script, agentEnv: false, "sample.cs", "--", ".", "--json")));
-        steps.Add(new("cody-script usage exits 2", () => CheckScriptUsage(script)));
-        steps.Add(new("cody-script publish", () => Dotnet(script, "publish", "sample.cs")));
+        steps.Add(new("s3-script new", () => Dotnet(Work, ["new", "s3-script", "-n", "sample", "-o", script, .. HiveFlag()])));
+        steps.Add(new("s3-script run", () => Dotnet(script, "run", "sample.cs", "--", ".")));
+        steps.Add(new("s3-script agent output", () => CheckScript(script, agentEnv: true, "sample.cs", "--", ".")));
+        steps.Add(new("s3-script --json output", () => CheckScript(script, agentEnv: false, "sample.cs", "--", ".", "--json")));
+        steps.Add(new("s3-script usage exits 2", () => CheckScriptUsage(script)));
+        steps.Add(new("s3-script publish", () => Dotnet(script, "publish", "sample.cs")));
         steps.Add(new("uninstall", () => Dotnet(Root, ["new", "uninstall", TEMPLATE_PACKAGE, .. HiveFlag()])));
         return [.. steps];
     }

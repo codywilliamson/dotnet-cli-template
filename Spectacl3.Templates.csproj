@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageType>Template</PackageType>
-    <PackageId>Cody.Templates</PackageId>
+    <PackageId>Spectacl3.Templates</PackageId>
     <Version>0.1.0</Version>
-    <Title>Cody Templates</Title>
+    <Title>Spectacl3 Templates</Title>
     <Authors>Cody Williamson</Authors>
-    <Description>dotnet new templates for Cody's NativeAOT CLIs (cody-cli) and single-file scripts (cody-script).</Description>
+    <Description>dotnet new templates for spectacl3 NativeAOT CLIs (s3-cli) and single-file scripts (s3-script).</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <TargetFramework>net10.0</TargetFramework>

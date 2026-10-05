@@ -2,10 +2,10 @@
   "$schema": "http://json.schemastore.org/template",
   "author": "Cody Williamson",
   "classifications": ["Console", "Script"],
-  "identity": "Cody.Templates.Script",
-  "name": "Cody Script",
+  "identity": "Spectacl3.Templates.Script",
+  "name": "Spectacl3 Script",
   "description": "Single-file .NET 10 script (dotnet run name.cs) with a usage check, step output and exit codes. Stays AOT clean.",
-  "shortName": "cody-script",
+  "shortName": "s3-script",
   "tags": {
     "language": "C#",
     "type": "item"
