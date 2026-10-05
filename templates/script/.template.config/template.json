@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Cody Williamson",
+  "classifications": ["Console", "Script"],
+  "identity": "Cody.Templates.Script",
+  "name": "Cody Script",
+  "description": "Single-file .NET 10 script (dotnet run name.cs) with a usage check, step output and exit codes. Stays AOT clean.",
+  "shortName": "cody-script",
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "sourceName": "tool"
+}
